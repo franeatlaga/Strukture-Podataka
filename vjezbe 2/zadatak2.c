@@ -22,8 +22,8 @@ int FindAPerson(PersonPtr head, char *surname);
 
 int main (){
     
-    Person head={ .next = NULL, .name = "", .surname = "", .birthYear = 0};
-    printf("pick a choice:\n1.Add person to beggining\n2.Add person to end\n3.Print list\n4.Delete from list\n5.Find a person by surname\n0.Exit\n");
+    Person head={ .next = NULL, .name = "", .surname = "", .birthYear = 0};  //pointer na pocetak liste (NULL znaci prazna lista)
+    printf("pick a choice:\n1.Add person to beggining\n2.Add person to end\n3.Print list\n4.Delete from list\n5.Find a person by surname\n0.Exit\n"); //menu za izbor sto korisnik želi raditi
     int choice;
     do{
         printf("Choice: ");
@@ -60,7 +60,7 @@ int main (){
                 printf("Enter surname to find: ");
                 scanf("%s", surname);
                FindAPerson(&head, surname);  
-                break;
+                break; //saljemo cijeli string ne pointer ni nista iako smo to mogli u funkciji upisati 
             }
             case 0: break;
             default: printf("Invalid choice. Try again.\n"); break;
@@ -72,7 +72,7 @@ int main (){
    while (head.next != NULL){
        PersonPtr temp = head.next;
        head.next = head.next->next;
-       free (temp);
+       free (temp);//oslobadanje memorije
     }
     return 0;
 }
@@ -81,7 +81,7 @@ int AddPersonToBeggining(PersonPtr head){
     PersonPtr newPerson = malloc(sizeof(Person));
     if (newPerson == NULL){
         return -1;
-    }
+    }//provjera jeli newperson prazan, ako je vracamo -1
     printf("Enter name: ");
     scanf("%s", newPerson->name);
     printf("Enter surname: ");
@@ -98,7 +98,7 @@ int AddPersonToBeggining(PersonPtr head){
 
 int PrintList(PersonPtr head){
     PersonPtr current = head->next;
-    while (current != NULL){
+    while (current != NULL){ //sve dok current nije na kraju liste ispise tu osobu na kojoj je trenutno
         printf("Name: %s, Surname: %s, Birth Year: %d\n", current->name, current->surname, current->birthYear);
         current = current->next;
     }
@@ -106,7 +106,7 @@ int PrintList(PersonPtr head){
 }
 
 int DeleteFromList(PersonPtr head){
-    printf("which person on the list do you want to delete (surname): ");
+    printf("which person on the list do you want to delete (surname): "); //trazimo osobu koju zelimo izbrisati sa tim prezimenom tj prvu osobu koja se pojavi
     char surname_temp[50];
     scanf("%s", surname_temp);
     PersonPtr current = head;
@@ -147,7 +147,7 @@ int AddPersonToEnd(PersonPtr head){
     PersonPtr newPerson = malloc(sizeof(Person));
     if (newPerson == NULL){
         return -1;
-    }
+    }//provjera jeli prazna lista
     printf("Enter name: ");
     scanf("%s", newPerson->name);
     printf("Enter surname: ");
@@ -159,7 +159,7 @@ int AddPersonToEnd(PersonPtr head){
     PersonPtr current = head;
     while (current->next != NULL){
         current = current->next;    
-    }
+    }//dođemo sa current do kraja liste i onda postavimo current next da je newperson
     current->next = newPerson;
     return 0;
 }
