@@ -135,7 +135,7 @@ int FindAPerson(PersonPtr head, char surname[]){
     while (current != NULL){
         if (strcmp(current->surname, surname) == 0){
             printf("Person found: %s %s, Birth Year: %d\n", current->name, current->surname, current->birthYear);
-            return 0;
+            return 0;//gleda jel surname isti ako jesu ispisuje podatke te osobe
         }
         current = current->next;
     }
