@@ -1,0 +1,331 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Person* PersonPtr;
+
+typedef struct Person{
+    char name[50];
+    char surname[50];
+    int birthYear;
+    PersonPtr next;
+} Person;
+
+
+int AddPersonToBeggining(PersonPtr head);
+int AddPersonToEnd(PersonPtr head);
+int PrintList(PersonPtr head);
+int DeleteFromList(PersonPtr head);
+int FindAPerson(PersonPtr head, char *surname);
+int AddPersonBefore(PersonPtr head);
+int AddPersonAfter(PersonPtr head);
+int SortListBySurname(PersonPtr head);
+int UsingTxtFile(PersonPtr head);
+
+
+int main (){
+    
+    Person head={ .next = NULL, .name = "", .surname = "", .birthYear = 0};  //pointer na pocetak liste (NULL znaci prazna lista)
+    printf("pick a choice:\n1.Add person to beggining\n2.Add person to end\n3.Print list\n4.Delete from list\n5.Find a person by surname\n6.Add person before someone\n7.Add person after someone\n8.Sort list by surname\n9.Use TXT file\n0.Exit\n"); //menu za izbor sto korisnik želi raditi
+    int choice;
+    do{
+        printf("Choice: ");
+        scanf("%d", &choice);
+        
+        switch(choice){
+            case 1: { if (AddPersonToBeggining(&head)==0)
+            break;
+        else
+    printf("something went wrong\n");
+            break;
+}
+            case 2: { if (AddPersonToEnd(&head)==0)
+            break;
+        else
+    printf("something went wrong\n");
+            break;
+}
+            case 3: { if (PrintList(&head)==0)
+            break;
+        else
+    printf("something went wrong\n");
+            break;
+}
+            case 4: { if (DeleteFromList(&head)==0)
+            break;
+        else
+    printf("something went wrong\n");
+            break;
+}
+            case 5: {
+                char surname[50];
+            
+                printf("Enter surname to find: ");
+                scanf("%s", surname);
+               FindAPerson(&head, surname);  
+                break; //saljemo cijeli string ne pointer ni nista iako smo to mogli u funkciji upisati 
+            }
+            case 6: {
+                if (AddPersonBefore(&head)==0)
+                    break;
+                else
+                    printf("something went wrong\n");
+                break;
+            }
+            case 7: {
+                
+                if (AddPersonAfter(&head)==0)
+                    break;
+                else
+                    printf("something went wrong\n");
+                break;
+            }
+            case 8: {
+                if (SortListBySurname(&head)==0)
+                    break;
+                else
+                    printf("something went wrong\n");
+                break;
+            }
+            case 9: {
+                if (UsingTxtFile(&head)==0)
+                    break;
+                else
+                    printf("something went wrong\n");
+                break;
+            }
+            case 0: break;
+            default: printf("Invalid choice. Try again.\n"); break;
+        }
+        
+    }while(choice != 0);
+
+
+   while (head.next != NULL){
+       PersonPtr temp = head.next;
+       head.next = head.next->next;
+       free (temp);//oslobadanje memorije
+    }
+    return 0;
+}
+
+int UsingTxtFile(PersonPtr head){
+    printf("Do you wish to add a person to file or read from file? (1-add, 2-read): ");
+    int choice;
+    scanf("%d", &choice);
+    if (choice == 1){
+        FILE *file = fopen("people.txt", "a");
+        if (file == NULL){
+            printf("Could not open file\n");
+            return -1;
+        }
+        PersonPtr current = head->next;
+        while (current != NULL){
+            fprintf(file, "%s %s %d\n", current->name, current->surname, current->birthYear);
+            current = current->next;
+        }
+        fclose(file);
+        printf("People added to file successfully\n");
+        return 0;
+    } else if (choice == 2){
+        FILE *file = fopen("people.txt", "r");
+        if (file == NULL){
+            printf("Could not open file\n");
+            return -1;
+        }
+        char name[50];
+        char surname[50];
+        int birthYear;
+        while (fscanf(file, "%s %s %d", name, surname, &birthYear) == 3){
+            PersonPtr newPerson = malloc (sizeof (Person));
+            if (newPerson == NULL){
+                fclose (file);
+                return -1;
+            }
+            strcpy(newPerson->name, name);
+            strcpy(newPerson->surname, surname);
+            newPerson->birthYear = birthYear;
+            newPerson->next = head->next;
+            head->next = newPerson;
+        }
+        fclose(file);
+        printf("People added from file successfully\n");
+        return 0;
+    } else {
+        printf("Invalid choice\n");
+        return -1;
+    }
+}
+
+int AddPersonBefore(PersonPtr head){
+    char surname[50];
+    printf("Enter surname to add before: ");
+    scanf("%s", surname);
+    PersonPtr current = head->next;
+    PersonPtr previous = head;
+    while (current != NULL){
+        if (strcmp(current->surname, surname) == 0){
+            PersonPtr newPerson = malloc(sizeof(Person));
+            if (newPerson == NULL){
+                return -1;
+            }
+            printf("Enter name: ");
+            scanf("%s", newPerson->name);
+            printf("Enter surname: ");
+            scanf("%s", newPerson->surname);
+            printf("Enter birth year: ");
+            scanf("%d", &newPerson->birthYear);
+            newPerson->next = current;
+            previous->next = newPerson;
+            printf("Person added successfully\n");
+            return 0;
+        }
+        previous = current;
+        current = current->next;
+    }
+    printf("Person with surname %s not found\n", surname);
+    return -1;
+}
+
+int AddPersonAfter(PersonPtr head){
+    char surname[50];
+                printf("Enter surname to add after: ");
+                scanf("%s", surname);
+    PersonPtr current = head->next;
+    while (current != NULL){
+        if (strcmp(current->surname, surname) == 0){
+            PersonPtr newPerson = malloc(sizeof(Person));
+            if (newPerson == NULL){
+                return -1;
+            }
+            printf("Enter name: ");
+            scanf("%s", newPerson->name);
+            printf("Enter surname: ");
+            scanf("%s", newPerson->surname);
+            printf("Enter birth year: ");
+            scanf("%d", &newPerson->birthYear);
+            newPerson->next = current->next;
+            current->next = newPerson;
+            printf("Person added successfully\n");
+            return 0;
+        }
+        current = current->next;
+    }
+    printf("Person with surname %s not found\n", surname);
+    return -1;
+}
+
+int SortListBySurname(PersonPtr head){
+    if (head->next == NULL || head->next->next == NULL){
+        return 0; // lista je prazna ili ima samo jedan element
+    }
+    int swapped;
+    do {
+        swapped = 0;
+        PersonPtr current = head->next;
+        PersonPtr previous = head;
+        while (current != NULL && current->next != NULL){
+            if (strcmp(current->surname, current->next->surname) > 0){
+                PersonPtr temp = current->next;
+                current->next = temp->next;
+                temp->next = current;
+                previous->next = temp;
+                swapped = 1;
+                previous = temp;
+            } else {
+                previous = current;
+                current = current->next;
+            }
+        }
+    } while (swapped);
+    printf("List sorted by surname successfully\n");
+    return 0;
+}
+
+int AddPersonToBeggining(PersonPtr head){
+    PersonPtr newPerson = malloc(sizeof(Person));
+    if (newPerson == NULL){
+        return -1;
+    }//provjera jeli newperson prazan, ako je vracamo -1
+    printf("Enter name: ");
+    scanf("%s", newPerson->name);
+    printf("Enter surname: ");
+    scanf("%s", newPerson->surname);
+    printf("Enter birth year: ");
+    scanf("%d", &newPerson->birthYear);
+    newPerson->next = NULL;
+    newPerson->next = head->next;
+    head->next = newPerson; 
+    printf("Person added successfully\n");
+
+    return 0;
+}
+
+int PrintList(PersonPtr head){
+    PersonPtr current = head->next;
+    while (current != NULL){ //sve dok current nije na kraju liste ispise tu osobu na kojoj je trenutno
+        printf("Name: %s, Surname: %s, Birth Year: %d\n", current->name, current->surname, current->birthYear);
+        current = current->next;
+    }
+    return 0;
+}
+
+int DeleteFromList(PersonPtr head){
+    printf("which person on the list do you want to delete (surname): "); //trazimo osobu koju zelimo izbrisati sa tim prezimenom tj prvu osobu koja se pojavi
+    char surname_temp[50];
+    scanf("%s", surname_temp);
+    PersonPtr current = head;
+    PersonPtr previous = NULL;
+    while (current != NULL){
+        if (strcmp(current->surname, surname_temp) == 0){
+            if (previous == NULL){
+                head = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            free(current);
+            printf("Person deleted successfully\n");
+            return 0;
+        }
+        previous = current;
+        current = current->next;
+    }
+    printf("Person not found\n");
+    return -1;
+
+}
+
+int FindAPerson(PersonPtr head, char surname[]){
+    PersonPtr current = head;
+    while (current != NULL){
+        if (strcmp(current->surname, surname) == 0){
+            printf("Person found: %s %s, Birth Year: %d\n", current->name, current->surname, current->birthYear);
+            return 0;//gleda jel surname isti ako jesu ispisuje podatke te osobe
+        }
+        current = current->next;
+    }
+    printf("Person not found\n");
+    return -1;
+}
+
+int AddPersonToEnd(PersonPtr head){
+    PersonPtr newPerson = malloc(sizeof(Person));
+    if (newPerson == NULL){
+        return -1;
+    }//provjera jeli prazna lista
+    printf("Enter name: ");
+    scanf("%s", newPerson->name);
+    printf("Enter surname: ");
+    scanf("%s", newPerson->surname);
+    
+    printf("Enter birth year: ");
+    scanf("%d", &newPerson->birthYear);
+    newPerson->next = NULL;
+    PersonPtr current = head;
+    while (current->next != NULL){
+        current = current->next;    
+    }//dođemo sa current do kraja liste i onda postavimo current next da je newperson
+    current->next = newPerson;
+    return 0;
+}
