@@ -35,7 +35,9 @@ int pop(Stack* s, double* out) {
     return 1;
 }
 
-void clearStack(Stack* s) { double d; while (pop(s, &d)); }
+int clearStack(Stack* s) { 
+    double d; while (pop(s, &d)); 
+    return 1; }     
 
 int isOperator(const char* tok) {
     return strlen(tok) == 1 && strchr("+-*/^", tok[0]) != NULL;
