@@ -2,265 +2,287 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define FILEPATH "Vjezba5/izraz.txt"
-#define MAX 100
 
-typedef struct Poly {
-	int coeff, pow;
-	struct Poly* next;
-}Poly;
+#define FILE_PATH "Exercise5/expr.txt"
+#define BUFFER_SIZE 100
 
-Poly* sort(Poly*);
-Poly* add_poly(Poly*, Poly*, Poly**);
-Poly* mult_poly(Poly*, Poly*, Poly**);
-Poly* create(int, int);
-Poly* add(Poly*, int, int);
+typedef struct PolyNode {
+    int coef;
+    int exp;
+    struct PolyNode* next;
+} PolyNode;
+
+PolyNode* sort(PolyNode*);                    // i dalje deklariran, iako se ne koristi
+PolyNode* add_poly(PolyNode*, PolyNode*, PolyNode**);
+PolyNode* mult_poly(PolyNode*, PolyNode*, PolyNode**);
+PolyNode* create_node(int, int);
+PolyNode* insert_term(PolyNode*, int, int);
 char* read_file();
-int read_buffer(Poly**, Poly**, char*);
-void printpoly(Poly*);
-void freepoly(Poly*);
+int parse_buffer(PolyNode**, PolyNode**, char*);
+void print_poly(PolyNode*);
+void free_poly(PolyNode*);
 
-int main() {
-	Poly* heada = NULL;
-	Poly* headm = NULL;
-	Poly* second = NULL;
-	Poly* first = NULL;
-	int statea = 0, statem = 0;
-	char* buffer = read_file();
-	if (buffer == NULL) {
-		return EXIT_FAILURE;
-	}
-	int choice;
-	if ((read_buffer(&first, &second, buffer)) == 1) {
-		printf("Greska u dodavanju u current!\n");
-		return EXIT_FAILURE;
-	}
-	free(buffer);
-	do {
-		printf("1 - Zbrajanje\n"); printf("2 - Mnozenje\n"); printf("0 - Izlaz\n"); scanf("%d", &choice);
-		switch (choice) {
-		case 1:
-			if (statea) {
-				printf("Vec ste iskoristili ovu opciju!\n");
-				break;
-			}
-			if (!add_poly(first, second, &heada)) {
-				return EXIT_FAILURE;
-			}
-			statea = 1;
-			printpoly(heada);
-			printf("\n");
-			break;
-		case 2:
-			if (statem) {
-				printf("Vec ste iskoristili ovu opciju!\n");
-				break;
-			}
-			if (!mult_poly(first, second, &headm)) {
-				return EXIT_FAILURE;
-			}
-			statem = 1;
-			printpoly(headm);
-			printf("\n");
-			break;
-		case 0:
-			break;
-		default:
-			printf("Greska u unosu opcije!\n");
-			break;
-		}
-	} while (choice != 0);
+int main(void) {
+    PolyNode* sum_head = NULL;
+    PolyNode* prod_head = NULL;
+    PolyNode* second = NULL;
+    PolyNode* first = NULL;
+    int sum_done = 0, prod_done = 0;
 
-	freepoly(heada);
-	freepoly(headm);
-	freepoly(first);
-	freepoly(second);
+    char* buffer = read_file();
+    if (buffer == NULL) {
+        return EXIT_FAILURE;
+    }
 
-	return 0;
+    int choice;
+    if ((parse_buffer(&first, &second, buffer)) == 1) {
+        printf("Error while adding to current polynomial!\n");
+        free(buffer);
+        return EXIT_FAILURE;
+    }
+    free(buffer);
+
+    do {
+        printf("1 - Addition\n");
+        printf("2 - Multiplication\n");
+        printf("0 - Exit\n");
+        printf("Choose option: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            if (sum_done) {
+                printf("You already used this option!\n");
+                break;
+            }
+            if (!add_poly(first, second, &sum_head)) {
+                return EXIT_FAILURE;
+            }
+            sum_done = 1;
+            print_poly(sum_head);
+            printf("\n");
+            break;
+
+        case 2:
+            if (prod_done) {
+                printf("You already used this option!\n");
+                break;
+            }
+            if (!mult_poly(first, second, &prod_head)) {
+                return EXIT_FAILURE;
+            }
+            prod_done = 1;
+            print_poly(prod_head);
+            printf("\n");
+            break;
+
+        case 0:
+            break;
+
+        default:
+            printf("Invalid option!\n");
+            break;
+        }
+    } while (choice != 0);
+
+    free_poly(sum_head);
+    free_poly(prod_head);
+    free_poly(first);
+    free_poly(second);
+
+    return 0;
 }
 
 char* read_file() {
-	int j = 0;
-	FILE* f1 = fopen(FILEPATH, "r");
-	if (!f1) {
-		printf("Greska u otvaranju filea!\n");
-		return NULL;
-	}
-	char* buffer = (char*)malloc(MAX * sizeof(char));
-	char* real_buffer = (char*)malloc(MAX * sizeof(char));
-	if (!buffer || !real_buffer) {
-		printf("Greska u alokaciji! (read_file)\n");
-		return NULL;
-	}
+    int j = 0;
+    FILE* f1 = fopen(FILE_PATH, "r");
+    if (!f1) {
+        printf("Error opening file!\n");
+        return NULL;
+    }
 
-	while (fgets(buffer, MAX, f1)) {
-		for (int i = 0; buffer[i] != '\0'; i++) {
-			if ((buffer[i] < '0' || buffer[i] > '9')) {
-				continue;
-			}
-			real_buffer[j++] = buffer[i];
-		}
-		real_buffer[j++] = ' ';
-	}
-	real_buffer[j] = '\0';
-	free(buffer);
-	fclose(f1);
-	return real_buffer;
+    char* buffer = (char*)malloc(BUFFER_SIZE * sizeof(char));
+    char* cleaned_buffer = (char*)malloc(BUFFER_SIZE * sizeof(char));
+    if (!buffer || !cleaned_buffer) {
+        printf("Allocation error! (read_file)\n");
+        if (buffer) free(buffer);
+        if (cleaned_buffer) free(cleaned_buffer);
+        fclose(f1);
+        return NULL;
+    }
+
+    while (fgets(buffer, BUFFER_SIZE, f1)) {
+        for (int i = 0; buffer[i] != '\0'; i++) {
+            if (buffer[i] < '0' || buffer[i] > '9') {
+                continue;
+            }
+            cleaned_buffer[j++] = buffer[i];
+        }
+        cleaned_buffer[j++] = ' ';
+    }
+    cleaned_buffer[j] = '\0';
+
+    free(buffer);
+    fclose(f1);
+    return cleaned_buffer;
 }
 
-Poly* create(int coeff, int pow) {
-	Poly* new_poly = (Poly*)malloc(sizeof(Poly));
-	if (!new_poly) {
-		printf("Greska u alokaciji! (create)\n");
-		return NULL;
-	}
-	new_poly->next = NULL;
-	new_poly->coeff = coeff;
-	new_poly->pow = pow;
+PolyNode* create_node(int coef, int exp) {
+    PolyNode* new_node = (PolyNode*)malloc(sizeof(PolyNode));
+    if (!new_node) {
+        printf("Allocation error! (create_node)\n");
+        return NULL;
+    }
 
-	return new_poly;
+    new_node->next = NULL;
+    new_node->coef = coef;
+    new_node->exp = exp;
+
+    return new_node;
 }
 
-Poly* add(Poly* head, int coeff, int pow) {
-	Poly* new_poly = create(coeff, pow);
-	if (!new_poly) {
-		printf("Greska u alokaciji (add)!\n");
-		return NULL;
-	}
+PolyNode* insert_term(PolyNode* head, int coef, int exp) {
+    PolyNode* new_node = create_node(coef, exp);
+    if (!new_node) {
+        printf("Allocation error (insert_term)!\n");
+        return NULL;
+    }
 
-	if (head == NULL || new_poly->pow > head->pow) {
-		new_poly->next = head;
-		return new_poly;
-	}
-	if (new_poly->pow == head->pow) {
-		head->coeff += new_poly->coeff;
-		free(new_poly);
-		return head;
-	}
+    if (head == NULL || new_node->exp > head->exp) {
+        new_node->next = head;
+        return new_node;
+    }
 
-	Poly* current = head;
-	Poly* prev = NULL;
-	
-	while (current && current->pow > pow) {
-		prev = current;
-		current = current->next;
-	}
+    if (new_node->exp == head->exp) {
+        head->coef += new_node->coef;
+        free(new_node);
+        return head;
+    }
 
-	if (current && current->pow == pow) {
-		current->coeff += coeff;
-		free(new_poly);
-		return head;
-	}
+    PolyNode* current = head;
+    PolyNode* prev = NULL;
 
-	prev->next = new_poly;
-	new_poly->next = current;
-	return head;
+    while (current && current->exp > exp) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (current && current->exp == exp) {
+        current->coef += coef;
+        free(new_node);
+        return head;
+    }
+
+    prev->next = new_node;
+    new_node->next = current;
+    return head;
 }
 
-void printpoly(Poly* head) {
-	Poly* temp = head;
+void print_poly(PolyNode* head) {
+    PolyNode* temp = head;
 
-	while (temp != NULL) {
-		printf("%dx^%d ", temp->coeff, temp->pow);
-		if (temp->next != NULL) {
-			printf("+ ");
-		}
-		temp = temp->next;
-	}
+    while (temp != NULL) {
+        printf("%dx^%d ", temp->coef, temp->exp);
+        if (temp->next != NULL) {
+            printf("+ ");
+        }
+        temp = temp->next;
+    }
 }
 
-void freepoly(Poly* head) {
-	Poly* temp;
-	while (head != NULL) {
-		temp = head;
-		head = head->next;
-		free(temp);
-	}
+void free_poly(PolyNode* head) {
+    PolyNode* temp;
+    while (head != NULL) {
+        temp = head;
+        head = head->next;
+        free(temp);
+    }
 }
 
-int read_buffer(Poly** first, Poly** second, char* buffer) {
-	int i = 0;
-	int coeff, pow;
-	Poly** current = first;
+int parse_buffer(PolyNode** first, PolyNode** second, char* buffer) {
+    int i = 0;
+    int coef, exp;
+    PolyNode** current = first;
 
-	while (buffer[i] != ' ' && buffer[i] != '\0') {
-		coeff = buffer[i++] - '0';
-		if (buffer[i] == ' ' || buffer[i] == '\0') break;
-		pow = buffer[i++] - '0';
-		*current = add(*current, coeff, pow);
-		if (!*current) {
-			return EXIT_FAILURE;
-		}
-	}
+    while (buffer[i] != ' ' && buffer[i] != '\0') {
+        coef = buffer[i++] - '0';
+        if (buffer[i] == ' ' || buffer[i] == '\0') break;
+        exp = buffer[i++] - '0';
+        *current = insert_term(*current, coef, exp);
+        if (!*current) {
+            return EXIT_FAILURE;
+        }
+    }
 
-	if (buffer[i] == ' ') i++;
-	current = second;
+    if (buffer[i] == ' ') i++;
+    current = second;
 
-	while (buffer[i] != '\0') {
-		coeff = buffer[i++] - '0';
-		if (buffer[i] == '\0') break;
-		pow = buffer[i++] - '0';
-		*current = add(*current, coeff, pow);
-		if (!*current) {
-			return EXIT_FAILURE;
-		}
-	}
+    while (buffer[i] != '\0') {
+        coef = buffer[i++] - '0';
+        if (buffer[i] == '\0') break;
+        exp = buffer[i++] - '0';
+        *current = insert_term(*current, coef, exp);
+        if (!*current) {
+            return EXIT_FAILURE;
+        }
+    }
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
-Poly* add_poly(Poly* first, Poly* second, Poly** head) {
-	Poly* temp1 = first;
-	Poly* temp2 = second;
-	int coeff, pow;
+PolyNode* add_poly(PolyNode* first, PolyNode* second, PolyNode** head) {
+    PolyNode* temp1 = first;
+    PolyNode* temp2 = second;
+    int coef, exp;
 
-	while (temp1 != NULL && temp2 != NULL) {
-		if (temp1->pow == temp2->pow) {
-			coeff = temp1->coeff + temp2->coeff;
-			pow = temp1->pow;
-			*head = add(*head, coeff, pow);
-			temp1 = temp1->next;
-			temp2 = temp2->next;
-		}
-		else if (temp1->pow > temp2->pow) {
-			*head = add(*head, temp1->coeff, temp1->pow);
-			temp1 = temp1->next;
-		}
-		else {
-			*head = add(*head, temp2->coeff, temp2->pow);
-			temp2 = temp2->next;
-		}
-	}
+    while (temp1 != NULL && temp2 != NULL) {
+        if (temp1->exp == temp2->exp) {
+            coef = temp1->coef + temp2->coef;
+            exp = temp1->exp;
+            *head = insert_term(*head, coef, exp);
+            temp1 = temp1->next;
+            temp2 = temp2->next;
+        }
+        else if (temp1->exp > temp2->exp) {
+            *head = insert_term(*head, temp1->coef, temp1->exp);
+            temp1 = temp1->next;
+        }
+        else {
+            *head = insert_term(*head, temp2->coef, temp2->exp);
+            temp2 = temp2->next;
+        }
+    }
 
-	while (temp1 != NULL) {
-		*head = add(*head, temp1->coeff, temp1->pow);
-		temp1 = temp1->next;
-	}
-	while (temp2 != NULL) {
-		*head = add(*head, temp2->coeff, temp2->pow);
-		temp2 = temp2->next;
-	}
+    while (temp1 != NULL) {
+        *head = insert_term(*head, temp1->coef, temp1->exp);
+        temp1 = temp1->next;
+    }
+    while (temp2 != NULL) {
+        *head = insert_term(*head, temp2->coef, temp2->exp);
+        temp2 = temp2->next;
+    }
 
-	return *head;
+    return *head;
 }
 
-Poly* mult_poly(Poly* first, Poly* second, Poly** head) {
-	Poly* temp1 = first; Poly* temp2 = second;
-	int coeff, pow, found = 0;
+PolyNode* mult_poly(PolyNode* first, PolyNode* second, PolyNode** head) {
+    PolyNode* temp1 = first;
+    PolyNode* temp2 = second;
+    int coef, exp;
 
-	while (temp1 != NULL) {
-		temp2 = second;
-		while (temp2 != NULL) {
-			coeff = temp1->coeff * temp2->coeff;
-			pow = temp1->pow + temp2->pow;
-			*head = add(*head, coeff, pow);
-			if (!*head) {
-				return NULL;
-			}
-			temp2 = temp2->next;
-		}
-		temp1 = temp1->next;
-	}
+    while (temp1 != NULL) {
+        temp2 = second;
+        while (temp2 != NULL) {
+            coef = temp1->coef * temp2->coef;
+            exp = temp1->exp + temp2->exp;
+            *head = insert_term(*head, coef, exp);
+            if (!*head) {
+                return NULL;
+            }
+            temp2 = temp2->next;
+        }
+        temp1 = temp1->next;
+    }
 
-	return *head;
+    return *head;
 }
