@@ -2,16 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define FILEPATH "Vjezba5/izraz.txt"
 #define MAX 100
 
 typedef struct Poly {
-    int coeff;
-    int pow;
+    int coeff, pow;
     struct Poly* next;
 } Poly;
 
+Poly* sort(Poly*);
 Poly* add_poly(Poly*, Poly*, Poly**);
 Poly* mult_poly(Poly*, Poly*, Poly**);
 Poly* create(int, int);
@@ -21,7 +19,7 @@ int read_buffer(Poly**, Poly**, char*);
 void printpoly(Poly*);
 void freepoly(Poly*);
 
-int main(void) {
+int main() {
     Poly* heada = NULL;
     Poly* headm = NULL;
     Poly* second = NULL;
@@ -33,25 +31,24 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    if ((read_buffer(&first, &second, buffer)) == EXIT_FAILURE) {
-        printf("Greska u parsiranju polinoma!\n");
+    int choice;
+    if ((read_buffer(&first, &second, buffer)) == 1) {
+        printf("Error while adding to current list!\n");
         free(buffer);
         return EXIT_FAILURE;
     }
     free(buffer);
 
-    int choice;
     do {
-        printf("1 - Zbrajanje\n");
-        printf("2 - Mnozenje\n");
-        printf("0 - Izlaz\n");
-        printf("Odabir: ");
+        printf("1 - Addition\n");
+        printf("2 - Multiplication\n");
+        printf("0 - Exit\n");
         scanf("%d", &choice);
 
         switch (choice) {
         case 1:
             if (statea) {
-                printf("Vec ste iskoristili ovu opciju!\n");
+                printf("You have already used this option!\n");
                 break;
             }
             if (!add_poly(first, second, &heada)) {
@@ -61,9 +58,10 @@ int main(void) {
             printpoly(heada);
             printf("\n");
             break;
+
         case 2:
             if (statem) {
-                printf("Vec ste iskoristili ovu opciju!\n");
+                printf("You have already used this option!\n");
                 break;
             }
             if (!mult_poly(first, second, &headm)) {
@@ -73,10 +71,12 @@ int main(void) {
             printpoly(headm);
             printf("\n");
             break;
+
         case 0:
             break;
+
         default:
-            printf("Greska u unosu opcije!\n");
+            printf("Invalid option!\n");
             break;
         }
     } while (choice != 0);
@@ -90,46 +90,43 @@ int main(void) {
 }
 
 char* read_file() {
-    FILE* f1 = fopen(FILEPATH, "r");
+    int j = 0;
+    FILE* f1 = fopen("izraz.txt", "r");
     if (!f1) {
-        printf("Greska u otvaranju filea!\n");
+        printf("Error opening file!\n");
         return NULL;
     }
 
-    // Pomaknemo se na kraj da doznamo velicinu
-    if (fseek(f1, 0, SEEK_END) != 0) {
-        printf("Greska pri fseek!\n");
+    char* buffer = (char*)malloc(MAX * sizeof(char));
+    char* real_buffer = (char*)malloc(MAX * sizeof(char));
+    if (!buffer || !real_buffer) {
+        printf("Allocation error! (read_file)\n");
+        if (buffer) free(buffer);
+        if (real_buffer) free(real_buffer);
         fclose(f1);
         return NULL;
     }
 
-    long length = ftell(f1);
-    if (length < 0) {
-        printf("Greska pri ftell!\n");
-        fclose(f1);
-        return NULL;
+    while (fgets(buffer, MAX, f1)) {
+        for (int i = 0; buffer[i] != '\0'; i++) {
+            if (buffer[i] < '0' || buffer[i] > '9') {
+                continue;
+            }
+            real_buffer[j++] = buffer[i];
+        }
+        real_buffer[j++] = ' ';
     }
+    real_buffer[j] = '\0';
 
-    rewind(f1);
-
-    char* buffer = (char*)malloc((size_t)length + 1);
-    if (!buffer) {
-        printf("Greska u alokaciji! (read_file)\n");
-        fclose(f1);
-        return NULL;
-    }
-
-    size_t read_bytes = fread(buffer, 1, (size_t)length, f1);
-    buffer[read_bytes] = '\0';
-
+    free(buffer);
     fclose(f1);
-    return buffer;
+    return real_buffer;
 }
 
 Poly* create(int coeff, int pow) {
     Poly* new_poly = (Poly*)malloc(sizeof(Poly));
     if (!new_poly) {
-        printf("Greska u alokaciji! (create)\n");
+        printf("Allocation error! (create)\n");
         return NULL;
     }
     new_poly->next = NULL;
@@ -139,11 +136,10 @@ Poly* create(int coeff, int pow) {
     return new_poly;
 }
 
-// Umetanje u sortiranu listu po opadajucoj potenciji, spajanje jednakih
 Poly* add(Poly* head, int coeff, int pow) {
     Poly* new_poly = create(coeff, pow);
     if (!new_poly) {
-        printf("Greska u alokaciji (add)!\n");
+        printf("Allocation error (add)!\n");
         return NULL;
     }
 
@@ -151,7 +147,6 @@ Poly* add(Poly* head, int coeff, int pow) {
         new_poly->next = head;
         return new_poly;
     }
-
     if (new_poly->pow == head->pow) {
         head->coeff += new_poly->coeff;
         free(new_poly);
@@ -180,15 +175,10 @@ Poly* add(Poly* head, int coeff, int pow) {
 void printpoly(Poly* head) {
     Poly* temp = head;
 
-    if (!temp) {
-        printf("Prazan polinom.");
-        return;
-    }
-
     while (temp != NULL) {
-        printf("%dx^%d", temp->coeff, temp->pow);
+        printf("%dx^%d ", temp->coeff, temp->pow);
         if (temp->next != NULL) {
-            printf(" + ");
+            printf("+ ");
         }
         temp = temp->next;
     }
@@ -203,60 +193,28 @@ void freepoly(Poly* head) {
     }
 }
 
-/*
-    read_buffer:
-    - buffer sadrzi SVE iz datoteke (oba polinoma, razdvojena '\n')
-    - prvi red -> prvi polinom
-    - drugi red -> drugi polinom
-    - koristi strtol za citanje brojeva, preskace znakove tipa 'x', '^', '+', itd.
-*/
 int read_buffer(Poly** first, Poly** second, char* buffer) {
-    char* p = buffer;
-    int coeff = 0, pow = 0;
-    int line = 0;          // 0 -> prvi polinom, 1 -> drugi polinom
+    int i = 0;
+    int coeff, pow;
     Poly** current = first;
 
-    while (*p != '\0') {
-        // novi red znaci novi polinom
-        if (*p == '\n') {
-            line++;
-            if (line == 1) {
-                current = second;
-            }
-            p++;
-            continue;
+    while (buffer[i] != ' ' && buffer[i] != '\0') {
+        coeff = buffer[i++] - '0';
+        if (buffer[i] == ' ' || buffer[i] == '\0') break;
+        pow = buffer[i++] - '0';
+        *current = add(*current, coeff, pow);
+        if (!*current) {
+            return EXIT_FAILURE;
         }
+    }
 
-        // preskoci sve sto nije cifra ni znak +/-
-        if ((*p < '0' || *p > '9') && *p != '-' && *p != '+') {
-            p++;
-            continue;
-        }
+    if (buffer[i] == ' ') i++;
+    current = second;
 
-        // citamo koeficijent
-        coeff = (int)strtol(p, &p, 10);
-
-        // preskoci sve sto nije cifra ni znak +/-
-        while (*p != '\0' &&
-               (*p < '0' || *p > '9') &&
-               *p != '-' && *p != '+') {
-            if (*p == '\n') {
-                // ako bi tu naletjeli na novi red, to bi znacilo da
-                // je polinom cudno formatiran, ali svejedno
-                // cemo krenuti u drugi polinom
-                line++;
-                if (line == 1) {
-                    current = second;
-                }
-            }
-            p++;
-        }
-
-        if (*p == '\0') break;
-
-        // citamo potenciju
-        pow = (int)strtol(p, &p, 10);
-
+    while (buffer[i] != '\0') {
+        coeff = buffer[i++] - '0';
+        if (buffer[i] == '\0') break;
+        pow = buffer[i++] - '0';
         *current = add(*current, coeff, pow);
         if (!*current) {
             return EXIT_FAILURE;
@@ -266,60 +224,59 @@ int read_buffer(Poly** first, Poly** second, char* buffer) {
     return EXIT_SUCCESS;
 }
 
-/*
-    add_poly:
-    - umjesto merge algoritma:
-      1) kopira sve clanove iz first u rezultat
-      2) doda sve clanove iz second u rezultat
-*/
 Poly* add_poly(Poly* first, Poly* second, Poly** head) {
-    Poly* result = NULL;
-    Poly* temp = first;
+    Poly* temp1 = first;
+    Poly* temp2 = second;
+    int coeff, pow;
 
-    while (temp != NULL) {
-        result = add(result, temp->coeff, temp->pow);
-        if (!result) return NULL;
-        temp = temp->next;
+    while (temp1 != NULL && temp2 != NULL) {
+        if (temp1->pow == temp2->pow) {
+            coeff = temp1->coeff + temp2->coeff;
+            pow = temp1->pow;
+            *head = add(*head, coeff, pow);
+            temp1 = temp1->next;
+            temp2 = temp2->next;
+        }
+        else if (temp1->pow > temp2->pow) {
+            *head = add(*head, temp1->coeff, temp1->pow);
+            temp1 = temp1->next;
+        }
+        else {
+            *head = add(*head, temp2->coeff, temp2->pow);
+            temp2 = temp2->next;
+        }
     }
 
-    temp = second;
-    while (temp != NULL) {
-        result = add(result, temp->coeff, temp->pow);
-        if (!result) return NULL;
-        temp = temp->next;
+    while (temp1 != NULL) {
+        *head = add(*head, temp1->coeff, temp1->pow);
+        temp1 = temp1->next;
+    }
+    while (temp2 != NULL) {
+        *head = add(*head, temp2->coeff, temp2->pow);
+        temp2 = temp2->next;
     }
 
-    *head = result;
     return *head;
 }
 
-/*
-    mult_poly:
-    - klasicno dvostruko mnozenje svakog clana s svakim
-    - sve se ubacuje preko add() u rezultat
-*/
 Poly* mult_poly(Poly* first, Poly* second, Poly** head) {
-    Poly* result = NULL;
-    Poly* t1 = first;
-    Poly* t2 = NULL;
+    Poly* temp1 = first;
+    Poly* temp2 = second;
     int coeff, pow;
 
-    while (t1 != NULL) {
-        t2 = second;
-        while (t2 != NULL) {
-            coeff = t1->coeff * t2->coeff;
-            pow = t1->pow + t2->pow;
-
-            result = add(result, coeff, pow);
-            if (!result) {
+    while (temp1 != NULL) {
+        temp2 = second;
+        while (temp2 != NULL) {
+            coeff = temp1->coeff * temp2->coeff;
+            pow = temp1->pow + temp2->pow;
+            *head = add(*head, coeff, pow);
+            if (!*head) {
                 return NULL;
             }
-
-            t2 = t2->next;
+            temp2 = temp2->next;
         }
-        t1 = t1->next;
+        temp1 = temp1->next;
     }
 
-    *head = result;
     return *head;
 }
