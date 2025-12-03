@@ -1,0 +1,5 @@
+2024-12-05
+Water Bottle, 6, 0.80
+Energy Drink, 2, 2.30
+Protein Bar, 5, 1.75
+Banana, 4, 0.30

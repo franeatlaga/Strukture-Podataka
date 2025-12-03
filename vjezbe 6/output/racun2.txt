@@ -1,0 +1,5 @@
+2024-10-15
+Pasta, 4, 0.90
+Tomato Sauce, 2, 1.50
+Olive Oil, 1, 5.20
+Parmesan, 1, 3.40
