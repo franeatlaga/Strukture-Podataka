@@ -13,53 +13,12 @@ typedef struct Dir {
     DirPos sibling;   // next directory in same level
     DirPos parent;    // parent directory
 } Dir;
-
-// make new node
-DirPos createDir(const char* name, DirPos parent) {
-    DirPos d = (DirPos)malloc(sizeof(*d));
-    if (!d) return NULL;
-    strcpy(d->name, name);
-    d->child = d->sibling = NULL;
-    d->parent = parent;
-    return d;
-}
-
-// md name
-void md(DirPos current, const char* name) {
-    DirPos newDir = createDir(name, current);
-    if (!newDir) return;
-
-    // insert at beginning of child list
-    newDir->sibling = current->child;
-    current->child = newDir;
-}
-
-// cd name
-DirPos cd(DirPos current, const char* name) {
-    DirPos temp = current->child;
-    while (temp) {
-        if (strcmp(temp->name, name) == 0) return temp;
-        temp = temp->sibling;
-    }
-    printf("Directory not found.\n");
-    return current;
-}
-
-// cd ..
-DirPos cdUp(DirPos current) {
-    if (current->parent) return current->parent;
-    printf("Already at root.\n");
-    return current;
-}
-
-// dir
-void dir(DirPos current) {
-    DirPos temp = current->child;
-    while (temp) {
-        printf("%s\n", temp->name);
-        temp = temp->sibling;
-    }
-}
+DirPos createDir(const char* name, DirPos parent);
+void md(DirPos current, const char* name);
+DirPos cd(DirPos current, const char* name);
+DirPos cdUp(DirPos current);
+void dir(DirPos current);
+void freeAll(DirPos current);
 
 int main() {
     int choice;
@@ -105,6 +64,62 @@ int main() {
             printf("Invalid option.\n");
         }
     }
-
+freeAll(root.child);
     return 0;
+}
+
+// make new node
+DirPos createDir(const char* name, DirPos parent) {
+    DirPos d = (DirPos)malloc(sizeof(*d));
+    if (!d) return NULL;
+    strcpy(d->name, name);
+    d->child = d->sibling = NULL;
+    d->parent = parent;
+    return d;
+}
+
+
+// md name
+void md(DirPos current, const char* name) {
+    DirPos newDir = createDir(name, current);
+    if (!newDir) return;
+
+    // insert at beginning of child list
+    newDir->sibling = current->child;
+    current->child = newDir;
+}
+
+// cd name
+DirPos cd(DirPos current, const char* name) {
+    DirPos temp = current->child;
+    while (temp) {
+        if (strcmp(temp->name, name) == 0) return temp;
+        temp = temp->sibling;
+    }
+    printf("Directory not found.\n");
+    return current;
+}
+
+// cd ..
+DirPos cdUp(DirPos current) {
+    if (current->parent) return current->parent;
+    printf("Already at root.\n");
+    return current;
+}
+
+
+// dir
+void dir(DirPos current) {
+    DirPos temp = current->child;
+    while (temp) {
+        printf("%s\n", temp->name);
+        temp = temp->sibling;
+    }
+}
+void freeAll(DirPos current) {
+    if (!current) return;
+
+    freeAll(current->child);
+    freeAll(current->sibling);
+    free(current);
 }
