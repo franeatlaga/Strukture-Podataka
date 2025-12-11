@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define MAX_NAME 100
-#define MAX_DATE 12      // "YYYY-MM-DD" + '\0'
+#define MAX_DATE 12    
 #define MAX_LINE 256
 
 typedef struct Item* ItemPos;
