@@ -5,13 +5,12 @@
 
 #define NAME_LEN 64
 
-// tree node (directory)
 typedef struct Dir* DirPos;
 typedef struct Dir {
     char name[NAME_LEN];
-    DirPos child;     // first subdirectory
-    DirPos sibling;   // next directory in same level
-    DirPos parent;    // parent directory
+    DirPos child;   
+    DirPos sibling;   
+    DirPos parent;    
 } Dir;
 DirPos createDir(const char* name, DirPos parent);
 void md(DirPos current, const char* name);
@@ -27,7 +26,7 @@ int main() {
     Dir root = { "C:", NULL, NULL, NULL };
     DirPos current = &root;
 
-    for (;;) {
+    while(1){
         printf("\nCurrent directory: %s\n", current->name);
         printf("1 - mkdir   2 - cd   3 - cd..   4 - dir   5 - exit\n");
         printf("Choice: ");
@@ -59,12 +58,13 @@ int main() {
 
         case 5: // exit
             return 0;
+            freeAll(root.child);
 
         default:
             printf("Invalid option.\n");
         }
     }
-freeAll(root.child);
+
     return 0;
 }
 
