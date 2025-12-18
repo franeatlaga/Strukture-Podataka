@@ -20,7 +20,6 @@ typedef struct Queue
     QNode *rear;
 } Queue;
 
-/* Prototypes */
 static void clear_stdin_line(void);
 
 static Node *create_node(int key);
@@ -140,8 +139,6 @@ int main(void)
     free_tree(root);
     return 0;
 }
-
-/* Function definitions */
 
 static void clear_stdin_line(void)
 {
