@@ -4,38 +4,38 @@
 #include <string.h>
 
 #define MAX_NAME 100
-#define MAX_DATE 12    
+#define MAX_DATE 12
 #define MAX_LINE 256
 
-typedef struct Item* ItemPos;
-typedef struct Bill* BillPos;
+typedef struct Item *ItemPos;
+typedef struct Bill *BillPos;
 
-typedef struct Item {
+typedef struct Item
+{
     char name[MAX_NAME];
     int quantity;
     double price;
     ItemPos next;
 } Item;
 
-typedef struct Bill {
+typedef struct Bill
+{
     char date[MAX_DATE]; // YYYY-MM-DD
     ItemPos items;       // linked list of items for this bill
     BillPos next;        // next bill
 } Bill;
 
-/* FUNCTION PROTOTYPES */
-
 // loading
-int loadAllBills(const char* listFileName, BillPos head);
-int loadSingleBill(const char* fileName, BillPos head);
+int loadAllBills(const char *listFileName, BillPos head);
+int loadSingleBill(const char *fileName, BillPos head);
 
 // create nodes
-BillPos createBill(const char* date);
-ItemPos createItem(const char* name, int quantity, double price);
+BillPos createBill(const char *date);
+ItemPos createItem(const char *name, int quantity, double price);
 
 // insert sorted
-int insertBillSorted(BillPos head, BillPos newBill);     // sorted by date
-int insertItemSorted(BillPos bill, ItemPos newItem);     // sorted by item name
+int insertBillSorted(BillPos head, BillPos newBill); // sorted by date
+int insertItemSorted(BillPos bill, ItemPos newItem); // sorted by item name
 
 // user query
 void query(BillPos head);
@@ -48,15 +48,17 @@ void freeAllBills(BillPos head);
 void freeAllItems(ItemPos first);
 
 // helper
-void trimNewline(char* s);
+void trimNewline(char *s);
 
-int main(void) {
+int main(void)
+{
     Bill head;
     head.next = NULL;
     head.items = NULL;
-    strcpy(head.date, "");  // dummy head, not used
+    strcpy(head.date, ""); // dummy head, not used
 
-    if (loadAllBills("racuni.txt", &head) != 0) {
+    if (loadAllBills("racuni.txt", &head) != 0)
+    {
         printf("Error while reading bills.\n");
         return EXIT_FAILURE;
     }
@@ -71,19 +73,21 @@ int main(void) {
     return 0;
 }
 
-/* IMPLEMENTATION */
-
-void trimNewline(char* s) {
+void trimNewline(char *s)
+{
     size_t len = strlen(s);
-    while (len > 0 && (s[len - 1] == '\n' || s[len - 1] == '\r')) {
+    while (len > 0 && (s[len - 1] == '\n' || s[len - 1] == '\r'))
+    {
         s[len - 1] = '\0';
         len--;
     }
 }
 
-BillPos createBill(const char* date) {
+BillPos createBill(const char *date)
+{
     BillPos newBill = (BillPos)malloc(sizeof(Bill));
-    if (!newBill) {
+    if (!newBill)
+    {
         printf("Memory allocation error for bill.\n");
         return NULL;
     }
@@ -97,9 +101,11 @@ BillPos createBill(const char* date) {
     return newBill;
 }
 
-ItemPos createItem(const char* name, int quantity, double price) {
+ItemPos createItem(const char *name, int quantity, double price)
+{
     ItemPos newItem = (ItemPos)malloc(sizeof(Item));
-    if (!newItem) {
+    if (!newItem)
+    {
         printf("Memory allocation error for item.\n");
         return NULL;
     }
@@ -114,12 +120,14 @@ ItemPos createItem(const char* name, int quantity, double price) {
     return newItem;
 }
 
-int insertBillSorted(BillPos head, BillPos newBill) {
+int insertBillSorted(BillPos head, BillPos newBill)
+{
     BillPos prev = head;
     BillPos curr = head->next;
 
     // ascending order by date (oldest first)
-    while (curr != NULL && strcmp(curr->date, newBill->date) < 0) {
+    while (curr != NULL && strcmp(curr->date, newBill->date) < 0)
+    {
         prev = curr;
         curr = curr->next;
     }
@@ -130,22 +138,26 @@ int insertBillSorted(BillPos head, BillPos newBill) {
     return 0;
 }
 
-int insertItemSorted(BillPos bill, ItemPos newItem) {
+int insertItemSorted(BillPos bill, ItemPos newItem)
+{
     ItemPos prev = NULL;
     ItemPos curr = bill->items;
 
     // ascending order by name
-    while (curr != NULL && strcmp(curr->name, newItem->name) < 0) {
+    while (curr != NULL && strcmp(curr->name, newItem->name) < 0)
+    {
         prev = curr;
         curr = curr->next;
     }
 
-    if (prev == NULL) {
+    if (prev == NULL)
+    {
         // insert at beginning
         newItem->next = bill->items;
         bill->items = newItem;
     }
-    else {
+    else
+    {
         newItem->next = curr;
         prev->next = newItem;
     }
@@ -153,22 +165,26 @@ int insertItemSorted(BillPos bill, ItemPos newItem) {
     return 0;
 }
 
-int loadAllBills(const char* listFileName, BillPos head) {
-    FILE* f = fopen(listFileName, "r");
-    if (!f) {
+int loadAllBills(const char *listFileName, BillPos head)
+{
+    FILE *f = fopen(listFileName, "r");
+    if (!f)
+    {
         perror("Error opening list file");
         return -1;
     }
 
     char fileName[256];
 
-    while (fgets(fileName, sizeof(fileName), f)) {
+    while (fgets(fileName, sizeof(fileName), f))
+    {
         trimNewline(fileName);
 
         if (fileName[0] == '\0')
-            continue;  // skip empty lines
+            continue; // skip empty lines
 
-        if (loadSingleBill(fileName, head) != 0) {
+        if (loadSingleBill(fileName, head) != 0)
+        {
             printf("Error loading bill from file: %s\n", fileName);
             // could return -1; but let's continue
         }
@@ -178,9 +194,11 @@ int loadAllBills(const char* listFileName, BillPos head) {
     return 0;
 }
 
-int loadSingleBill(const char* fileName, BillPos head) {
-    FILE* f = fopen(fileName, "r");
-    if (!f) {
+int loadSingleBill(const char *fileName, BillPos head)
+{
+    FILE *f = fopen(fileName, "r");
+    if (!f)
+    {
         perror("Error opening bill file");
         return -1;
     }
@@ -188,7 +206,8 @@ int loadSingleBill(const char* fileName, BillPos head) {
     char line[MAX_LINE];
 
     // first line = date
-    if (!fgets(line, sizeof(line), f)) {
+    if (!fgets(line, sizeof(line), f))
+    {
         printf("Empty or invalid bill file: %s\n", fileName);
         fclose(f);
         return -1;
@@ -196,7 +215,8 @@ int loadSingleBill(const char* fileName, BillPos head) {
     trimNewline(line);
 
     BillPos newBill = createBill(line);
-    if (!newBill) {
+    if (!newBill)
+    {
         fclose(f);
         return -1;
     }
@@ -204,7 +224,8 @@ int loadSingleBill(const char* fileName, BillPos head) {
     insertBillSorted(head, newBill);
 
     // read items
-    while (fgets(line, sizeof(line), f)) {
+    while (fgets(line, sizeof(line), f))
+    {
         trimNewline(line);
         if (line[0] == '\0')
             continue;
@@ -214,15 +235,18 @@ int loadSingleBill(const char* fileName, BillPos head) {
         double price;
 
         // example line: "Bread, 2, 1.20"
-        if (sscanf(line, " %[^,], %d, %lf", name, &quantity, &price) == 3) {
+        if (sscanf(line, " %[^,], %d, %lf", name, &quantity, &price) == 3)
+        {
             ItemPos newItem = createItem(name, quantity, price);
-            if (!newItem) {
+            if (!newItem)
+            {
                 fclose(f);
                 return -1;
             }
             insertItemSorted(newBill, newItem);
         }
-        else {
+        else
+        {
             printf("Invalid line in file %s: %s\n", fileName, line);
         }
     }
@@ -231,7 +255,8 @@ int loadSingleBill(const char* fileName, BillPos head) {
     return 0;
 }
 
-void query(BillPos head) {
+void query(BillPos head)
+{
     char targetName[MAX_NAME];
     char startDate[MAX_DATE];
     char endDate[MAX_DATE];
@@ -253,21 +278,26 @@ void query(BillPos head) {
 
     BillPos currentBill = head->next;
 
-    while (currentBill != NULL) {
+    while (currentBill != NULL)
+    {
         // skip bills before start date
-        if (strcmp(currentBill->date, startDate) < 0) {
+        if (strcmp(currentBill->date, startDate) < 0)
+        {
             currentBill = currentBill->next;
             continue;
         }
 
         // since list is sorted, we can stop after endDate
-        if (strcmp(currentBill->date, endDate) > 0) {
+        if (strcmp(currentBill->date, endDate) > 0)
+        {
             break;
         }
 
         ItemPos item = currentBill->items;
-        while (item != NULL) {
-            if (strcmp(item->name, targetName) == 0) {
+        while (item != NULL)
+        {
+            if (strcmp(item->name, targetName) == 0)
+            {
                 totalQuantity += item->quantity;
                 totalSpent += item->quantity * item->price;
             }
@@ -284,25 +314,31 @@ void query(BillPos head) {
     printf("Total money spent: %.2lf\n", totalSpent);
 }
 
-void printAll(BillPos head) {
+void printAll(BillPos head)
+{
     BillPos bill = head->next;
 
-    if (!bill) {
+    if (!bill)
+    {
         printf("No bills loaded.\n");
         return;
     }
 
     printf("\n=== ALL BILLS ===\n");
 
-    while (bill != NULL) {
+    while (bill != NULL)
+    {
         printf("Bill date: %s\n", bill->date);
 
         ItemPos item = bill->items;
-        if (!item) {
+        if (!item)
+        {
             printf("  (no items)\n");
         }
-        else {
-            while (item != NULL) {
+        else
+        {
+            while (item != NULL)
+            {
                 printf("  %-20s  qty: %3d  price: %7.2lf\n",
                        item->name, item->quantity, item->price);
                 item = item->next;
@@ -314,20 +350,24 @@ void printAll(BillPos head) {
     }
 }
 
-void freeAllItems(ItemPos first) {
+void freeAllItems(ItemPos first)
+{
     ItemPos curr = first;
-    while (curr != NULL) {
+    while (curr != NULL)
+    {
         ItemPos temp = curr;
         curr = curr->next;
         free(temp);
     }
 }
 
-void freeAllBills(BillPos head) {
+void freeAllBills(BillPos head)
+{
     BillPos currBill = head->next;
     head->next = NULL;
 
-    while (currBill != NULL) {
+    while (currBill != NULL)
+    {
         BillPos tempBill = currBill;
         currBill = currBill->next;
 
