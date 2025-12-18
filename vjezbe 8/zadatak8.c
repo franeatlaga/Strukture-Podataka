@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,6 +19,129 @@ typedef struct Queue
     QNode *front;
     QNode *rear;
 } Queue;
+
+/* Prototypes */
+static void clear_stdin_line(void);
+
+static Node *create_node(int key);
+static Node *insert_node(Node *root, int key, int *inserted); /* inserted: 1 inserted, 0 exists, -1 alloc fail */
+static Node *search_node(Node *root, int key);
+static Node *find_min(Node *root);
+static Node *delete_node(Node *root, int key, int *deleted); /* deleted: 1 deleted, 0 not found */
+
+static void inorder(Node *root);
+static void preorder(Node *root);
+static void postorder(Node *root);
+
+static void queue_init(Queue *q);
+static int queue_is_empty(Queue *q);
+static int enqueue(Queue *q, Node *n);
+static Node *dequeue(Queue *q);
+
+static void level_order(Node *root);
+static void free_tree(Node *root);
+
+static void print_menu(void);
+
+int main(void)
+{
+    Node *root = NULL;
+    int choice;
+
+    for (;;)
+    {
+        print_menu();
+
+        if (scanf("%d", &choice) != 1)
+        {
+            clear_stdin_line();
+            printf("Invalid input.\n");
+            continue;
+        }
+
+        if (choice == 8)
+            break;
+
+        if (choice >= 1 && choice <= 3)
+        {
+            int value;
+            printf("Enter value: ");
+            if (scanf("%d", &value) != 1)
+            {
+                clear_stdin_line();
+                printf("Invalid input.\n");
+                continue;
+            }
+
+            if (choice == 1)
+            {
+                int inserted = 0;
+                root = insert_node(root, value, &inserted);
+                if (inserted == 1)
+                    printf("Inserted.\n");
+                else if (inserted == 0)
+                    printf("Value already exists.\n");
+                else
+                    printf("Memory allocation failed.\n");
+            }
+            else if (choice == 2)
+            {
+                Node *found = search_node(root, value);
+                if (found)
+                    printf("Found %d.\n", found->key);
+                else
+                    printf("Not found.\n");
+            }
+            else if (choice == 3)
+            {
+                int deleted = 0;
+                root = delete_node(root, value, &deleted);
+                if (deleted)
+                    printf("Deleted.\n");
+                else
+                    printf("Value not found.\n");
+            }
+        }
+        else if (choice >= 4 && choice <= 7)
+        {
+            if (!root)
+            {
+                printf("Tree is empty.\n");
+                continue;
+            }
+
+            if (choice == 4)
+            {
+                inorder(root);
+                printf("\n");
+            }
+            else if (choice == 5)
+            {
+                preorder(root);
+                printf("\n");
+            }
+            else if (choice == 6)
+            {
+                postorder(root);
+                printf("\n");
+            }
+            else if (choice == 7)
+            {
+                level_order(root);
+                printf("\n");
+            }
+        }
+        else
+        {
+            printf("Unknown option.\n");
+        }
+    }
+
+    free_tree(root);
+    return 0;
+}
+
+/* Function definitions */
 
 static void clear_stdin_line(void)
 {
@@ -46,7 +168,11 @@ static Node *insert_node(Node *root, int key, int *inserted)
     {
         Node *n = create_node(key);
         if (!n)
+        {
+            if (inserted)
+                *inserted = -1;
             return NULL;
+        }
         if (inserted)
             *inserted = 1;
         return n;
@@ -54,15 +180,11 @@ static Node *insert_node(Node *root, int key, int *inserted)
 
     if (key < root->key)
     {
-        Node *child = insert_node(root->left, key, inserted);
-        if (child || (inserted && *inserted))
-            root->left = child;
+        root->left = insert_node(root->left, key, inserted);
     }
     else if (key > root->key)
     {
-        Node *child = insert_node(root->right, key, inserted);
-        if (child || (inserted && *inserted))
-            root->right = child;
+        root->right = insert_node(root->right, key, inserted);
     }
     else
     {
@@ -203,6 +325,7 @@ static Node *dequeue(Queue *q)
 {
     if (!q->front)
         return NULL;
+
     QNode *old = q->front;
     Node *data = old->data;
 
@@ -261,108 +384,4 @@ static void print_menu(void)
     printf("7) Print Level-order\n");
     printf("8) Exit\n");
     printf("Choice: ");
-}
-
-int main(void)
-{
-    Node *root = NULL;
-    int choice;
-
-    for (;;)
-    {
-        print_menu();
-
-        if (scanf("%d", &choice) != 1)
-        {
-            clear_stdin_line();
-            printf("Invalid input.\n");
-            continue;
-        }
-
-        if (choice == 8)
-            break;
-
-        if (choice >= 1 && choice <= 3)
-        {
-            int value;
-            printf("Enter value: ");
-            if (scanf("%d", &value) != 1)
-            {
-                clear_stdin_line();
-                printf("Invalid input.\n");
-                continue;
-            }
-
-            if (choice == 1)
-            {
-                int inserted = 0;
-                Node *new_root = insert_node(root, value, &inserted);
-                if (!new_root && !root)
-                {
-                    printf("Memory allocation failed.\n");
-                }
-                else
-                {
-                    root = new_root;
-                    if (inserted)
-                        printf("Inserted.\n");
-                    else
-                        printf("Value already exists.\n");
-                }
-            }
-            else if (choice == 2)
-            {
-                Node *found = search_node(root, value);
-                if (found)
-                    printf("Found %d.\n", found->key);
-                else
-                    printf("Not found.\n");
-            }
-            else if (choice == 3)
-            {
-                int deleted = 0;
-                root = delete_node(root, value, &deleted);
-                if (deleted)
-                    printf("Deleted.\n");
-                else
-                    printf("Value not found.\n");
-            }
-        }
-        else if (choice >= 4 && choice <= 7)
-        {
-            if (!root)
-            {
-                printf("Tree is empty.\n");
-                continue;
-            }
-
-            if (choice == 4)
-            {
-                inorder(root);
-                printf("\n");
-            }
-            else if (choice == 5)
-            {
-                preorder(root);
-                printf("\n");
-            }
-            else if (choice == 6)
-            {
-                postorder(root);
-                printf("\n");
-            }
-            else if (choice == 7)
-            {
-                level_order(root);
-                printf("\n");
-            }
-        }
-        else
-        {
-            printf("Unknown option.\n");
-        }
-    }
-
-    free_tree(root);
-    return 0;
 }
