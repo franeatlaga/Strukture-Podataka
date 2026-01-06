@@ -1,0 +1,5 @@
+Prije funkcije
+74 67 39 
+Nakon funkcije
+0 113 0 
+
