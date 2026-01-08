@@ -1,0 +1,10 @@
+Oslo,  699000
+Bergen,  286000
+Trondheim,  212000
+Stavanger,  145000
+Drammen,  105000
+Fredrikstad,  83000
+Kristiansand,  92000
+Tromsø,  76000
+Sandnes,  83000
+Ålesund,  67000

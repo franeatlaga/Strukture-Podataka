@@ -66,16 +66,16 @@ int main(void)
             for (int i = 0; i < n; i++)
                 root = tree_insert(root, arr[i]);
 
-            printf("Inorder prije replace: ");
-            fprintf(f_fixed, "Prije funkcije\n");
+            printf("inorder prije replace: ");
+            fprintf(f_fixed, "prije funkcije\n");
             tree_inorder(root, f_fixed);
             printf("\n");
             fprintf(f_fixed, "\n");
 
             tree_rewrite_desc_sum(root);
 
-            printf("Inorder nakon replace: ");
-            fprintf(f_fixed, "Nakon funkcije\n");
+            printf("inorder nakon replace: ");
+            fprintf(f_fixed, "nakon funkcije\n");
             tree_inorder(root, f_fixed);
             printf("\n\n");
             fprintf(f_fixed, "\n\n");
@@ -85,17 +85,17 @@ int main(void)
         else if (choice == 2)
         {
             int m = 0;
-            printf("Unesite koliko random brojeva zelite?\n> ");
+            printf("unesite koliko random brojeva zelite\n> ");
             if (scanf("%d", &m) != 1 || m <= 0)
             {
-                printf("Neispravan broj.\n");
+                printf("neispravan broj\n");
                 continue;
             }
 
             int *a = make_random_array(m);
             if (!a)
             {
-                printf("Nema memorije.\n");
+                printf("nema memorije\n");
                 continue;
             }
 
@@ -103,20 +103,20 @@ int main(void)
             for (int i = 0; i < m; i++)
                 root = tree_insert(root, a[i]);
 
-            printf("Generirani brojevi:\n");
+            printf("generirani brojevi:\n");
             for (int i = 0; i < m; i++)
                 printf("%d\n", a[i]);
 
-            printf("Inorder prije replace: ");
-            fprintf(f_rand, "Prije funkcije\n");
+            printf("inorder prije replace: ");
+            fprintf(f_rand, "prije funkcije\n");
             tree_inorder(root, f_rand);
             printf("\n");
             fprintf(f_rand, "\n");
 
             tree_rewrite_desc_sum(root);
 
-            printf("Inorder nakon replace: ");
-            fprintf(f_rand, "Nakon funkcije\n");
+            printf("inorder nakon replace: ");
+            fprintf(f_rand, "nakon funkcije\n");
             tree_inorder(root, f_rand);
             printf("\n\n");
             fprintf(f_rand, "\n\n");
@@ -126,7 +126,7 @@ int main(void)
         }
         else
         {
-            printf("Nepostojeca opcija.\n\n");
+            printf("nepostojeca opcija.\n\n");
         }
     }
 
@@ -146,12 +146,6 @@ Node *node_create(int key)
     return p;
 }
 
-/*
-  Insert koji daje stablo kao na slici:
-  - ako je root->key > key, ide desno
-  - inace ide lijevo
-  (to je "obrnuti" BST u odnosu na standard)
-*/
 Node *tree_insert(Node *root, int key)
 {
     if (!root)
@@ -176,10 +170,7 @@ void tree_inorder(Node *root, FILE *out)
     tree_inorder(root->right, out);
 }
 
-/*
-  b) Svaki cvor postaje suma originalnih vrijednosti u lijevom+desnom podstablu.
-  Funkcija vraca sumu originalnih vrijednosti cijelog podstabla (da ne radimo O(n^2)).
-*/
+// b)
 int tree_rewrite_desc_sum(Node *root)
 {
     if (!root)

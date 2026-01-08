@@ -1,0 +1,10 @@
+Toronto,  2930000
+Montreal,  1760000
+Vancouver,  675000
+Calgary,  1400000
+Edmonton,  1010000
+Ottawa,  1010000
+Winnipeg,  750000
+Quebec City,  550000
+Hamilton,  580000
+Kitchener,  270000

@@ -1,0 +1,10 @@
+Cairo,  10000000
+Alexandria,  5200000
+Giza,  4300000
+Shubra El Kheima,  1100000
+Port Said,  650000
+Suez,  750000
+Luxor,  500000
+Aswan,  300000
+Mansoura,  620000
+Tanta,  430000
