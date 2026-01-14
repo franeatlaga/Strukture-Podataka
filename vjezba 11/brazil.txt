@@ -1,0 +1,10 @@
+São Paulo,  12330000
+Rio de Janeiro,  6748000
+Brasília,  3055000
+Salvador,  2900000
+Fortaleza,  2687000
+Belo Horizonte,  2523000
+Manaus,  2210000
+Curitiba,  1964000
+Recife,  1653000
+Porto Alegre,  1493000

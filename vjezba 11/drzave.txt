@@ -1,0 +1,5 @@
+Norveška,     norveska.txt
+Japan,        japan.txt
+Brazil,       brazil.txt
+Kanada,       kanada.txt
+Egipat,       egipat.txt

@@ -1,0 +1,10 @@
+Tokyo,  13960000
+Yokohama,  3760000
+Osaka,  2750000
+Nagoya,  2330000
+Sapporo,  1960000
+Fukuoka,  1620000
+Kobe,  1510000
+Kyoto,  1460000
+Kawasaki,  1550000
+Saitama,  1320000
